@@ -2,9 +2,11 @@ import PropTypes from 'prop-types';
 import { Inter } from 'next/font/google';
 import Script from 'next/script'; // Correct import
 import { ThemeProvider } from 'next-themes';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import './globals.css';
+import { Providers } from './providers'; // Import the Providers wrapper
+
+import Navbar from '@/components/Navbar';
+
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,19 +24,10 @@ const RootLayout = ({ children }) => (
       <meta name="description" content={metadata.description} />
     </head>
     <body className={inter.className}>
-      <ThemeProvider attribute="class">
-        <div className="dark:bg-nft-dark bg-white min-h-screen">
-          <header>
-            <Navbar />
-          </header>
-          <main>
-            {children}
-          </main>
-          <footer>
-            <Footer />
-          </footer>
-        </div>
-      </ThemeProvider>
+      <Providers> 
+        <Navbar />
+        <main>{children}</main>
+      </Providers>
       <Script rel="preload" as="font" src="https://kit.fontawesome.com/269c8a4f7b.js" crossorigin="anonymous" strategy="beforeInteractive" />
     </body>
   </html>
