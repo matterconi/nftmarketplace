@@ -116,6 +116,12 @@
   align-items: flex-start;
 }
 
+.contain-fit {
+  object-fit: contain;
+}
+
+
+
 @keyframes fadeIn {
   from {
     opacity: 0;

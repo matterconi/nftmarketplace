@@ -1,14 +1,18 @@
-'use client'; // This is required for using React hooks in this component
+'use client';
 
-import { ThemeProvider } from 'next-themes'; // Import the theme provider you're using
-import { NFTProvider } from '@/context/NFTContext'; // Import your custom NFTProvider
+import { ThemeProvider } from 'next-themes';
+import { NFTProvider } from '@/context/NFTContext';
+import { GrantProvider } from '@/context/GrantContext';
 
 export function Providers({ children }) {
   return (
-    <ThemeProvider attribute="class">  {/* Ensures theme support for dark/light modes */}
+    <ThemeProvider attribute="class">
       <NFTProvider>
-        {children} {/* All components in the app will have access to both contexts */}
+        <GrantProvider>
+          {children}
+        </GrantProvider>
       </NFTProvider>
     </ThemeProvider>
   );
 }
+

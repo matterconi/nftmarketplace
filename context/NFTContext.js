@@ -8,54 +8,56 @@ const fetchContract = (signerOrProvider) => {
   return new ethers.Contract(MarketAddress, MarketAddressABI, signerOrProvider);
 };
 
-const createSale = async (metadataUrl, formInputPrice, isReselling = false, id = null) => {
+export const NFTContext = React.createContext();
+
+export const NFTProvider = ({ children }) => {
+  const [currentAccount, setCurrentAccount] = useState('');
+  const nftCurrency = 'MATIC';
+  const [isLoadingNFT, setIsLoadingNFT] = useState(false);
+
+  const fetchNFTs = async () => {
     try {
-      const web3Modal = new Web3Modal();
-      const connection = await web3Modal.connect();
-      const provider = new ethers.BrowserProvider(connection); // ethers v6
-      const signer = await provider.getSigner(); // Make sure signer is fetched correctly
-
-      const price = ethers.parseUnits(formInputPrice, 'ether'); // ethers v6 uses parseUnits
-
-      const contract = fetchContract(signer); 
-      const listingPrice = await contract.getListingPrice();
-      
-      // Use metadataUrl instead of url
-      const transaction = await contract.createToken(metadataUrl, price, { value: listingPrice.toString() });
-      await transaction.wait();
-    } catch (error) {
-      console.error('Error creating sale:', error); // Better error logging
-    }
-  };
-
-// context/NFTContext.js
-
-// context/NFTContext.js
-
-// context/NFTContext.js
-
-export const fetchNFTs = async () => {
-    try {
-        const provider = new ethers.JsonRpcProvider(); // Specify the RPC URL if necessary
+        setIsLoadingNFT(false); //); //
+        // Initialize the provider to connect to localhost
+        const provider = new ethers.JsonRpcProvider();
+        
+        // Connect to the deployed contract
         const contract = fetchContract(provider);
+        
+        // Fetch all unsold market items
         const data = await contract.fetchMarketItems();
-        console.log('Raw Fetched Data:', data);
-
+        
+        // Process each MarketItem to extract detailed NFT information
         const items = await Promise.all(
-            data.map(async (item) => {
-                console.log('Fetching NFT:', item);
+            data.map(async (item) => {                
+                // Extract properties from MarketItem
+                const tokenId = item.tokenId.toString(); // Convert BigInt to string
+                const seller = item.seller;
+                const owner = item.owner;
+                const price = ethers.formatEther(item.price); // Convert price from Wei to ETH
+                const sold = item.sold;
                 
-                // Example of processing the item and returning a useful value
-                const tokenId = item[0]; // Assuming item[0] is the tokenId in BigNumber format
-                
+                // Fetch the tokenURI from the contract
+                const tokenURI = await contract.tokenURI(tokenId);                
+                // Fetch the metadata from the tokenURI
+                const meta = await axios.get(tokenURI);
+                const { image, name, description } = meta.data;                
                 return {
                     tokenId,
+                    seller,
+                    owner,
+                    price,
+                    sold,
+                    image,
+                    name,
+                    description,
+                    tokenURI
                 };
             })
         );
-
+        
+        // Filter out any null items (if any)
         const filteredItems = items.filter(item => item !== null);
-        console.log('Processed NFTs:', filteredItems);
         return filteredItems;
     } catch (error) {
         console.error('Error fetching NFTs:', error);
@@ -63,34 +65,105 @@ export const fetchNFTs = async () => {
     }
 };
 
-  
+ const fetchMyNFTsOrListedNFTs = async (type) => {
+  setIsLoadingNFT(false);
+  const web3Modal = new Web3Modal();
+  const connection = await web3Modal.connect();
+  const provider = new ethers.BrowserProvider(connection); // ethers v6
+  const signer = await provider.getSigner(); // Make sure signer is fetched correctly
 
-export const NFTContext = React.createContext();
+  const contract = fetchContract(signer);
 
-export const NFTProvider = ({ children }) => {
-  const [currentAccount, setCurrentAccount] = useState('');
-  const nftCurrency = 'MATIC';
+  const data = type === 'fetchItemsListed' 
+  ? await contract.fetchItemsListed() 
+  : await contract.fetchMyNFTs();
 
-  const checkIfWalletIsConnected = async () => {
-    if (!window.ethereum) {
-      console.log('MetaMask is required to connect your wallet.');
-      return false;
-    }
-    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-    if (accounts.length) {
-      setCurrentAccount(accounts[0]);
-    } else {
-      console.log('Please connect your wallet to access the NFT Marketplace.');
-      return false;
-    }
-  };
+  const items = await Promise.all(
+      data.map(async (item) => {
+          
+          // Extract properties from MarketItem
+          const tokenId = item.tokenId.toString(); // Convert BigInt to string
+          const seller = item.seller;
+          const owner = item.owner;
+          const price = ethers.formatEther(item.price); // Convert price from Wei to ETH
+          const sold = item.sold;
+          
+          // Fetch the tokenURI from the contract
+          const tokenURI = await contract.tokenURI(tokenId);
+          // Fetch the metadata from the tokenURI
+          const meta = await axios.get(tokenURI);
+          const { image, name, description } = meta.data;
+          return {
+              tokenId,
+              seller,
+              owner,
+              price,
+              sold,
+              image,
+              name,
+              description,
+              tokenURI
+          };
+      })
+  );
+  return items;
+};
 
-  useEffect(() => {
-    const initialize = async () => {
-      await checkIfWalletIsConnected();
-    };
-    initialize();
-  }, [currentAccount]); // Ensure this runs after account is set
+const createSale = async (metadataUrl, formInputPrice, isReselling = false, id = null) => {
+  try {
+    const web3Modal = new Web3Modal();
+    const connection = await web3Modal.connect();
+    const provider = new ethers.BrowserProvider(connection); // ethers v6
+    const signer = await provider.getSigner(); // Make sure signer is fetched correctly
+
+    const price = ethers.parseUnits(formInputPrice, 'ether'); // ethers v6 uses parseUnits
+
+    const contract = fetchContract(signer); 
+    const listingPrice = await contract.getListingPrice();
+    
+    // Use metadataUrl instead of url
+    const transaction = !isReselling ? await contract.createToken(metadataUrl, price, { value: listingPrice.toString() }) : await contract.resellToken(id, price, { value: listingPrice.toString() });
+    setIsLoadingNFT(true);
+    await transaction.wait();
+    setIsLoadingNFT(false);
+  } catch (error) {
+    console.error('Error creating sale:', error); // Better error logging
+  }
+};
+
+const buyNFT = async (nft) => {
+  const web3Modal = new Web3Modal();
+  const connection = await web3Modal.connect();
+  const provider = new ethers.BrowserProvider(connection); // ethers v6
+  const signer = await provider.getSigner(); // Make sure signer is fetched correctly
+
+  const contract = fetchContract(signer);
+
+  const price = ethers.parseUnits(nft.price.toString(), 'ether'); // ethers v6 uses parseUnits
+
+  const tokenId = BigInt(nft.tokenId);
+
+  const transaction = await contract.createMarketSale(tokenId, { value: price });
+  setIsLoadingNFT(true);
+  await transaction.wait();
+  setIsLoadingNFT(false);
+}
+
+const checkIfWalletIsConnect = async () => {
+if (!window.ethereum) return alert('Please install MetaMask.');
+
+const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+
+if (accounts.length) {
+  setCurrentAccount(accounts[0]);
+} else {
+  console.log('No accounts found');
+}
+};
+
+useEffect(() => {
+checkIfWalletIsConnect();
+}, []);
 
   const connectWallet = async () => {
     if (!window.ethereum) {
@@ -99,17 +172,11 @@ export const NFTProvider = ({ children }) => {
     }
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
     setCurrentAccount(accounts[0]);
-    console.log('Connected account:', accounts[0]);
   };
 
   const uploadToIPFS = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    // Log the contents of the formData
-    for (let pair of formData.entries()) {
-        console.log(`${pair[0]}: ${pair[1]}`);
-    }
-
 
     const url = `https://api.pinata.cloud/pinning/pinFileToIPFS`;
     try {
@@ -122,7 +189,6 @@ export const NFTProvider = ({ children }) => {
       });
 
       const fileUrl = `https://gateway.pinata.cloud/ipfs/${response.data.IpfsHash}`;
-      console.log('Pinata File URL:', fileUrl); 
       return fileUrl;
     } catch (error) {
       console.error('Error uploading to Pinata:', error);
@@ -155,8 +221,6 @@ export const NFTProvider = ({ children }) => {
       });
 
       const metadataUrl = `https://gateway.pinata.cloud/ipfs/${response.data.IpfsHash}`;
-      console.log('Metadata IPFS URL:', metadataUrl);
-
       await createSale(metadataUrl, price);
       router.push('/');
 
@@ -167,8 +231,10 @@ export const NFTProvider = ({ children }) => {
   };
 
   return (
-    <NFTContext.Provider value={{ nftCurrency, connectWallet, currentAccount, uploadToIPFS, createNFT, fetchNFTs }}>
+    <NFTContext.Provider value={{ nftCurrency, connectWallet, currentAccount, uploadToIPFS, createNFT, fetchNFTs, fetchMyNFTsOrListedNFTs, buyNFT, createSale, isLoadingNFT }}>
       {children}
     </NFTContext.Provider>
   );
 };
+
+

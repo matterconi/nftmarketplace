@@ -10,6 +10,7 @@ import { NFTContext } from '../../context/NFTContext';
 import Button from '../../components/Button';
 import Input from '@/components/Input';
 import images from '../../assets';
+import Loading from '@/components/Loading';
 
 const CreateNft = () => {
   const { theme } = useTheme();
@@ -21,7 +22,7 @@ const CreateNft = () => {
   });
 
   const { createNFT } = useContext(NFTContext);
-  const { uploadToIPFS } = useContext(NFTContext);
+  const { uploadToIPFS, isLoadingNFT } = useContext(NFTContext);
   const router = useRouter();
 
   const onDrop = useCallback(async (acceptedFiles) => {
@@ -45,7 +46,6 @@ const CreateNft = () => {
     try {
       const url = await uploadToIPFS(file);
       if (url) {
-        console.log("IPFS URL received:", url);
         setFileUrl(url);
       } else {
         console.error("Failed to upload the file to IPFS.");
@@ -76,9 +76,17 @@ const CreateNft = () => {
     `;
   }, [isDragActive, isDragAccept, isDragReject]);
 
+  if(isLoadingNFT) {
+    return (
+      <div className='flexStart min-h-screen'>
+        <Loading />
+      </div>
+    )
+  }
+
   return (
     <div className='flex justify-center sm:px-4 p-12'>
-      <div className='w-full md:w-full mt-65'>
+      <div className='w-full md:w-full'>
         <h1 className='font-poppins dark:text-white text-nft-black-1 text-2xl minlg:text-4xl font-semibold ml-4 xs:ml-0'>
           Create new NFT
         </h1>

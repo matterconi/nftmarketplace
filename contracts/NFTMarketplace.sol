@@ -2,7 +2,6 @@
 pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract NFTMarketplace is ERC721URIStorage {
     uint256 private _tokenIds; // Manual token ID counter
@@ -28,6 +27,8 @@ contract NFTMarketplace is ERC721URIStorage {
         uint256 price,
         bool sold
     );
+
+    event TokenCreated(uint256 indexed tokenId, address owner);
 
     constructor() ERC721("NFT Marketplace", "NFTM") {
         owner = payable(msg.sender);
@@ -60,10 +61,12 @@ contract NFTMarketplace is ERC721URIStorage {
 
         createMarketItem(newTokenId, price);  // Create market item
 
+        emit TokenCreated(newTokenId, msg.sender); // Emit token creation event
+
         return newTokenId;
     }
 
-        // Function to create a market item
+    // Function to create a market item
     function createMarketItem(uint256 tokenId, uint256 price) private {
         require(price > 0, "Price must be at least 1");
         require(msg.value == listingPrice, "Price must be equal to listing price");
@@ -71,7 +74,7 @@ contract NFTMarketplace is ERC721URIStorage {
         idToMarketItem[tokenId] = MarketItem(
             tokenId,
             payable(msg.sender),
-            payable(address(0)), // No owner yet
+            payable(address(this)), // Owner is the contract
             price,
             false // Item is initially unsold
         );
@@ -100,6 +103,8 @@ contract NFTMarketplace is ERC721URIStorage {
 
         require(msg.value == price, "Please submit the asked price");
 
+        address payable seller = idToMarketItem[tokenId].seller; // Store seller's address before setting to address(0)
+
         idToMarketItem[tokenId].owner = payable(msg.sender);
         idToMarketItem[tokenId].sold = true;
         idToMarketItem[tokenId].seller = payable(address(0));
@@ -109,7 +114,7 @@ contract NFTMarketplace is ERC721URIStorage {
         _transfer(address(this), msg.sender, tokenId);
 
         payable(owner).transfer(listingPrice);
-        payable(idToMarketItem[tokenId].seller).transfer(msg.value);
+        payable(seller).transfer(msg.value); // Transfer to the actual seller
     }
 
     function fetchMarketItems() public view returns (MarketItem[] memory) {
