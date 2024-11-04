@@ -9,8 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@apollo/client": "^3.11.8",
     "@openzeppelin/contracts": "^5.0.2",
     "autoprefixer": "^10.4.19",
+    "graphql": "^16.9.0",
     "ipfs-http-client": "^60.0.1",
     "next": "14.2.3",
     "next-themes": "^0.3.0",
