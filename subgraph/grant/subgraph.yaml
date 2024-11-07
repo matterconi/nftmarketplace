@@ -1,0 +1,56 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Grant
+    network: sepolia
+    source:
+      address: "0xB183911Cb09E94d1633b459DC3aE1f717eEb624A"
+      abi: Grant
+      startBlock: 7024644
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - AdminAddressSet
+        - Approval
+        - ApprovalForAll
+        - BatchMetadataUpdate
+        - GrantBurned
+        - GrantMinted
+        - MarketplaceAddressSet
+        - MetadataUpdate
+        - OwnershipTransferred
+        - Transfer
+        - Withdrawn
+      abis:
+        - name: Grant
+          file: ./abis/Grant.json
+      eventHandlers:
+        - event: AdminAddressSet(indexed address)
+          handler: handleAdminAddressSet
+        - event: Approval(indexed address,indexed address,indexed uint256)
+          handler: handleApproval
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+        - event: BatchMetadataUpdate(uint256,uint256)
+          handler: handleBatchMetadataUpdate
+        - event: GrantBurned(indexed uint256,indexed address)
+          handler: handleGrantBurned
+        - event: GrantMinted(indexed uint256,indexed address,uint256)
+          handler: handleGrantMinted
+        - event: MarketplaceAddressSet(indexed address)
+          handler: handleMarketplaceAddressSet
+        - event: MetadataUpdate(uint256)
+          handler: handleMetadataUpdate
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+        - event: Withdrawn(indexed address,uint256)
+          handler: handleWithdrawn
+      file: ./src/grant.ts
