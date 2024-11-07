@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Web3Modal from 'web3modal'; 
 import { ethers } from 'ethers';
 import axios from 'axios';
-import { MarketAddress, MarketAddressABI } from './constants';
+import { MarketAddress, MarketAddressABI, IGrantContract } from './constants';
 
 const fetchContract = (signerOrProvider) => {
   return new ethers.Contract(MarketAddress, MarketAddressABI, signerOrProvider);
@@ -19,7 +19,7 @@ export const NFTProvider = ({ children }) => {
     try {
         setIsLoadingNFT(false); //); //
         // Initialize the provider to connect to localhost
-        const provider = new ethers.JsonRpcProvider();
+        const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/6c0edc89adeb43a6a30fe53157d81186");
         
         // Connect to the deployed contract
         const contract = fetchContract(provider);
@@ -120,7 +120,11 @@ const createSale = async (metadataUrl, formInputPrice, isReselling = false, id =
 
     const contract = fetchContract(signer); 
     const listingPrice = await contract.getListingPrice();
-    
+
+    const grantContractAddress = await contract.grantContract();
+    if (grantContractAddress !== '0xB183911Cb09E94d1633b459DC3aE1f717eEb624A') {  // Use ethers.ZeroAddress here
+      throw new Error("Grant contract address is not set in NFTMarketplace.");
+    }    
     // Use metadataUrl instead of url
     const transaction = !isReselling ? await contract.createToken(metadataUrl, price, { value: listingPrice.toString() }) : await contract.resellToken(id, price, { value: listingPrice.toString() });
     setIsLoadingNFT(true);

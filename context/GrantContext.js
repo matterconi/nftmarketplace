@@ -87,9 +87,9 @@ export const GrantProvider = ({ children }) => {
     console.log("purchaseGrantNFT called with tier:", tier);
 
     let price;
-    if (tier === 1) price = ethers.parseEther('5');
-    else if (tier === 2) price = ethers.parseEther('7');
-    else if (tier === 3) price = ethers.parseEther('10');
+    if (tier === 1) price = ethers.parseEther('0.0000005');
+    else if (tier === 2) price = ethers.parseEther('0.0000007');
+    else if (tier === 3) price = ethers.parseEther('0.0000009');
     else throw new Error("Invalid tier selected.");
 
     console.log("Price calculated:", price.toString(), "for tier:", tier);

@@ -1,0 +1,32 @@
+
+‡ÿdataSources:
+  - kind: ethereum
+    mapping:
+      abis:
+        - file:
+            /: /ipfs/Qmefsww8z7YvsGPgpp7jPkJgjWYWABBPyoz3Q3twNPwJ2t
+          name: NFTStoriesTest
+      apiVersion: 0.0.5
+      entities:
+        - TokenMinted
+        - TokenTransferred
+      eventHandlers:
+        - event: 'TokenMinted(indexed address,uint256)'
+          handler: handleTokenMinted
+        - event: 'TokenTransferred(indexed address,indexed address,uint256)'
+          handler: handleTokenTransferred
+      file:
+        /: /ipfs/QmPdWHcUVusY77r4pfd49e1vGHMazws9DoecqAgBgED3ry
+      kind: ethereum/events
+      language: wasm/assemblyscript
+    name: NFTStoriesTest
+    network: localhost
+    source:
+      abi: NFTStoriesTest
+      address: '0x4826533B4897376654Bb4d4AD88B7faFD0C98528'
+      startBlock: 0
+schema:
+  file:
+    /: /ipfs/QmWQx8FmotdeNE8QeQFxFjjgzkRjgMmiADfYAeBDzyBn4t
+specVersion: 0.0.3
+ÿ

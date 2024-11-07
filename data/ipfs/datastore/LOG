@@ -119,3 +119,13 @@
 16:17:23.997146 version@stat F·[3 1] S·9KiB[5KiB 4KiB] Sc·[0.75 0.00]
 16:17:24.004014 db@janitor F·6 G·0
 16:17:24.004139 db@open done T·9.373542ms
+16:54:20.708469 table@compaction L0·3 -> L1·1 S·9KiB Q·192
+16:54:20.719969 table@build created L1@28 N·29 S·4KiB "/F5..KSQ,v88":"/pr..2UU,v82"
+16:54:20.720437 version@stat F·[0 1] S·4KiB[0B 4KiB] Sc·[0.00 0.00]
+16:54:20.731041 table@compaction committed F-3 S-5KiB Ke·0 D·22 T·21.844792ms
+16:54:20.732187 table@remove removed @25
+16:54:20.735175 table@remove removed @22
+16:54:20.736880 table@remove removed @19
+16:54:20.737579 table@remove removed @18
+17:01:07.524306 db@close closing
+17:01:07.526136 db@close done T·1.834458ms

@@ -5,6 +5,7 @@ import client from '../apolloClient'; // Adjust path as needed
 import { ThemeProvider } from 'next-themes';
 import { NFTProvider } from '@/context/NFTContext';
 import { GrantProvider } from '@/context/GrantContext';
+import { DashboardProvider } from '@/context/DashboardContext';
 
 export function Providers({ children }) {
   return (
@@ -12,7 +13,9 @@ export function Providers({ children }) {
       <ThemeProvider attribute="class">
         <NFTProvider>
           <GrantProvider>
-            {children}
+            <DashboardProvider>
+              {children}
+            </DashboardProvider>
           </GrantProvider>
         </NFTProvider>
       </ThemeProvider>
